@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/menu2"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginTop="15dp"
-        android:background="@drawable/ic_menu"/>
 
     <fragment
         android:id="@+id/map"
@@ -25,8 +18,9 @@
         android:layout_margin="10dp"
         android:text="Find Nearby Dustbins"
         android:textColor="@color/white"
+        android:layout_alignParentBottom="true"
         android:textStyle="bold"
         android:layout_gravity="bottom"
         android:backgroundTint="@color/colorPrimary"/>
 
-</FrameLayout>
+</RelativeLayout>

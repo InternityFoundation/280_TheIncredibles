@@ -12,13 +12,18 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Telephony;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,6 +45,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.IOException;
+import java.util.List;
+
 
 public class MapsActivity extends FragmentActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
@@ -52,14 +60,26 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
     TextView name;
     LocationRequest locationRequest;
     Button request;
+    EditText searchEntry;
     Marker locationMarker;
     private int count = 0;
     String username = " ";
+    ImageView search;
+    String nearby = "hospital";
+    private double latitude, longitude;
+    String url;
+    Object transferData[] = new Object[2];
+    GetNearbyPlaces getNearbyPlaces = new GetNearbyPlaces();
+    private int proximityRadius = 10000;
+
+    MarkerOptions userMarkerOptions = new MarkerOptions();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        searchEntry = findViewById(R.id.i_search);
 
         username = getIntent().getStringExtra("USERNAME");
 
@@ -67,7 +87,62 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
         request.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//
+
+                // search nearby dustbins
+                url = getUrl(latitude, longitude, nearby);
+                transferData[0] = mMap;
+                transferData[1] = url;
+
+                getNearbyPlaces.execute(transferData);
+                Toast.makeText(MapsActivity.this, "Searching for nearby Dustbins...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this, "Showing nearby Dustbins...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        });
+
+        search = findViewById(R.id.search);
+        search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String string = searchEntry.getText().toString().trim();
+                List<Address> addressList = null;
+
+                if(!TextUtils.isEmpty(string)) {
+                    Geocoder geocoder = new Geocoder(getApplicationContext());
+
+                    try {
+                        addressList = geocoder.getFromLocationName(string, 6);
+
+                        if(addressList != null) {
+
+                            for(int i=0; i<addressList.size(); i++) {
+                                Address userAddress = addressList.get(i);
+                                LatLng latLng = new LatLng(userAddress.getLatitude(), userAddress.getLongitude());
+
+                                userMarkerOptions.position(latLng);
+                                userMarkerOptions.title(string);
+                                userMarkerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+                                mMap.addMarker(userMarkerOptions);
+
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                                mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+                                mMap.getUiSettings().setRotateGesturesEnabled(false);
+
+                            }
+                        }
+                        else {
+                            Toast.makeText(MapsActivity.this, "Location not found...", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+                else {
+                    Toast.makeText(MapsActivity.this, "Please enter a location..", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -118,6 +193,10 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
 
     @Override
     public void onLocationChanged(Location location) {
+
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+
         lastLocation = location;
 
         if(locationMarker != null) {
@@ -269,5 +348,14 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private String getUrl(double latitude, double longitude, String nearby) {
+        StringBuilder googleUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googleUrl.append("location=" + latitude + "," + longitude);
+        googleUrl.append("&sensor=true");
+        googleUrl.append("&key=" + "AIzaSyCDq46OsSy1sVZxD8UJMA8XK40are-RdUY");
+
+        return googleUrl.toString();
     }
 }
