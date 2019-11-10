@@ -65,12 +65,12 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
     private int count = 0;
     String username = " ";
     ImageView search;
-    String nearby = "hospital";
+    String nearby = "dustbin";
     private double latitude, longitude;
     String url;
     Object transferData[] = new Object[2];
     GetNearbyPlaces getNearbyPlaces = new GetNearbyPlaces();
-    private int proximityRadius = 10000;
+    private int proximityRadius = 1000;
 
     MarkerOptions userMarkerOptions = new MarkerOptions();
 
@@ -94,8 +94,8 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
                 transferData[1] = url;
 
                 getNearbyPlaces.execute(transferData);
-                Toast.makeText(MapsActivity.this, "Searching for nearby Dustbins...", Toast.LENGTH_SHORT).show();
                 Toast.makeText(MapsActivity.this, "Showing nearby Dustbins...", Toast.LENGTH_SHORT).show();
+                request.setClickable(false);
                 return;
             }
         });
@@ -127,7 +127,7 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
                                 mMap.addMarker(userMarkerOptions);
 
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                                mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
+                                mMap.animateCamera(CameraUpdateFactory.zoomBy(16));
                                 mMap.getUiSettings().setRotateGesturesEnabled(false);
 
                             }
@@ -353,6 +353,8 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
     private String getUrl(double latitude, double longitude, String nearby) {
         StringBuilder googleUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googleUrl.append("location=" + latitude + "," + longitude);
+        googleUrl.append("&radius=" + proximityRadius);
+        googleUrl.append("&type=" + nearby);
         googleUrl.append("&sensor=true");
         googleUrl.append("&key=" + "AIzaSyCDq46OsSy1sVZxD8UJMA8XK40are-RdUY");
 
