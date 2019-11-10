@@ -301,11 +301,9 @@ public class MapsActivity extends FragmentActivity implements NavigationView.OnN
         // Handle navigation view item clicks here.
         int id = menuItem.getItemId();
 
-        if (id == R.id.nav_about_us) {
-
-        }
-        else if(id == R.id.nav_call_technician) {
-
+        if (id == R.id.nav_call_technician) {
+            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + "7838974834"));
+            startActivity(intent);
         }
         else if(id == R.id.nav_share) {
             Intent intent4 = new Intent(Intent.ACTION_SEND);
